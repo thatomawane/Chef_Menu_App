@@ -23,7 +23,6 @@ const categories: { label: string; value: Category }[] = [
 export default function AddMenuItemScreen() {
   const { addMenuItem, menuItems } = useMenu();
 
-
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');

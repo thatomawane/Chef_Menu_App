@@ -1,277 +1,233 @@
 
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+} from 'react';
 
-import { useMenu } from '../context/MenuContext';
-import type { Category } from '../types/MenuItem';
+import type { MenuItem } from '../types/MenuItem';
 
-type FilterCategory = Category | 'All';
+type MenuContextType = {
+  menuItems: MenuItem[];
+  addMenuItem: (item: MenuItem) => void;
+  updateMenuItem: (updatedItem: MenuItem) => void;
+  deleteMenuItem: (id: string) => void;
+  toggleAvailability: (id: string) => void;
+};
 
-const categories: { label: string; value: FilterCategory }[] = [
-  { label: 'All', value: 'All' },
-  { label: 'Starter', value: 'Starter' },
-  { label: 'Main Course', value: 'Main' },
-  { label: 'Dessert', value: 'Dessert' },
-  { label: 'Drink', value: 'Drink' },
+const initialMenu: MenuItem[] = [
+  // STARTERS
+  {
+    id: '1',
+    name: 'Chicken Burger',
+    description:
+      'A juicy grilled chicken patty topped with fresh lettuce, tomato and creamy mayonnaise, served in a toasted burger bun.',
+    price: '65',
+    category: 'Starter',
+    available: true,
+  },
+  {
+    id: '2',
+    name: 'Crispy Chicken Wings',
+    description:
+      'Golden-fried chicken wings coated in a smoky BBQ glaze and served with a creamy dipping sauce.',
+    price: '55',
+    category: 'Starter',
+    available: true,
+  },
+  {
+    id: '3',
+    name: 'Loaded Nachos',
+    description:
+      'Crunchy tortilla chips topped with melted cheese, fresh salsa, jalapeños and sour cream.',
+    price: '60',
+    category: 'Starter',
+    available: true,
+  },
+  {
+    id: '4',
+    name: 'Golden Calamari',
+    description:
+      'Tender calamari rings lightly coated in seasoned crumbs and fried until golden, served with lemon and tartar sauce.',
+    price: '75',
+    category: 'Starter',
+    available: true,
+  },
+
+  // MAIN COURSES
+  {
+    id: '5',
+    name: 'Beef Steak',
+    description:
+      'A tender, perfectly grilled beef steak seasoned with herbs and spices, served with crispy chips and seasonal vegetables.',
+    price: '120',
+    category: 'Main',
+    available: true,
+  },
+  {
+    id: '6',
+    name: 'Grilled Chicken Breast',
+    description:
+      'Juicy grilled chicken breast seasoned with herbs and spices, served with creamy mashed potatoes and seasonal vegetables.',
+    price: '95',
+    category: 'Main',
+    available: true,
+  },
+  {
+    id: '7',
+    name: 'Beef Lasagne',
+    description:
+      'Layers of pasta filled with rich minced beef sauce, creamy béchamel and melted cheese, baked until golden.',
+    price: '110',
+    category: 'Main',
+    available: true,
+  },
+  {
+    id: '8',
+    name: 'Chicken Alfredo Pasta',
+    description:
+      'Pasta tossed in a smooth garlic cream sauce with grilled chicken and a sprinkle of parmesan cheese.',
+    price: '105',
+    category: 'Main',
+    available: true,
+  },
+  {
+    id: '9',
+    name: 'Fish and Chips',
+    description:
+      'Crispy battered fish served with golden chips, fresh lemon and homemade tartar sauce.',
+    price: '100',
+    category: 'Main',
+    available: true,
+  },
+  {
+    id: '10',
+    name: 'Pepperoni Pizza',
+    description:
+      'Freshly baked pizza topped with tomato sauce, mozzarella cheese and slices of spicy pepperoni.',
+    price: '115',
+    category: 'Main',
+    available: true,
+  },
+
+  // DESSERTS
+  {
+    id: '11',
+    name: 'Chocolate Cake',
+    description:
+      'A soft and rich chocolate cake layered with smooth chocolate icing, perfect for anyone with a sweet tooth.',
+    price: '45',
+    category: 'Dessert',
+    available: true,
+  },
+  {
+    id: '12',
+    name: 'Chocolate Brownie',
+    description:
+      'A rich, fudgy chocolate brownie served warm with a scoop of creamy vanilla ice cream.',
+    price: '50',
+    category: 'Dessert',
+    available: true,
+  },
+  {
+    id: '13',
+    name: 'Strawberry Cheesecake',
+    description:
+      'Smooth, creamy cheesecake on a buttery biscuit base, finished with a sweet strawberry topping.',
+    price: '55',
+    category: 'Dessert',
+    available: true,
+  },
+  {
+    id: '14',
+    name: 'Classic Tiramisu',
+    description:
+      'Coffee-soaked sponge fingers layered with light mascarpone cream and dusted with cocoa powder.',
+    price: '60',
+    category: 'Dessert',
+    available: true,
+  },
+  {
+    id: '15',
+    name: 'Vanilla Ice Cream Sundae',
+    description:
+      'Three scoops of vanilla ice cream topped with chocolate sauce, crushed nuts and a cherry.',
+    price: '45',
+    category: 'Dessert',
+    available: true,
+  },
+
+  // DRINKS
+  {
+    id: '16',
+    name: 'Fresh Lemonade',
+    description:
+      'A refreshing homemade lemonade prepared with freshly squeezed lemons, water and a touch of sweetness.',
+    price: '25',
+    category: 'Drink',
+    available: true,
+  },
 ];
 
-export default function MenuScreen() {
-  const handleDeleteItem = (id: string, name: string) => {
-  Alert.alert(
-    'Delete Menu Item',
-    `Are you sure you want to delete ${name}?`,
-    [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          deleteMenuItem(id);
-        },
-      },
-    ]
-  );
+const MenuContext = createContext<MenuContextType | undefined>(undefined);
+
+type MenuProviderProps = {
+  children: ReactNode;
 };
-  const { menuItems, deleteMenuItem } = useMenu();
 
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] =
-    useState<FilterCategory>('All');
+export function MenuProvider({ children }: MenuProviderProps) {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenu);
 
-  const filteredItems = menuItems.filter((item) => {
-    const matchesSearch = item.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
+  const addMenuItem = (item: MenuItem) => {
+    setMenuItems((currentItems) => [...currentItems, item]);
+  };
 
-    const matchesCategory =
-      selectedCategory === 'All' ||
-      item.category === selectedCategory;
+  const updateMenuItem = (updatedItem: MenuItem) => {
+    setMenuItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === updatedItem.id ? updatedItem : item
+      )
+    );
+  };
 
-    return matchesSearch && matchesCategory;
-  });
+  const deleteMenuItem = (id: string) => {
+    setMenuItems((currentItems) =>
+      currentItems.filter((item) => item.id !== id)
+    );
+  };
+
+  const toggleAvailability = (id: string) => {
+    setMenuItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === id
+          ? { ...item, available: !item.available }
+          : item
+      )
+    );
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Manage Menu</Text>
-      <Text style={styles.subtitle}>
-        View and manage your restaurant's menu items.
-      </Text>
-
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search menu items..."
-        value={search}
-        onChangeText={setSearch}
-      />
-
-      <Text style={styles.sectionTitle}>Filter by course</Text>
-
-      <View style={styles.filterContainer}>
-        {categories.map((category) => (
-          <TouchableOpacity
-            key={category.value}
-            style={[
-              styles.filterButton,
-              selectedCategory === category.value &&
-                styles.activeFilter,
-            ]}
-            onPress={() => setSelectedCategory(category.value)}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                selectedCategory === category.value &&
-                  styles.activeFilterText,
-              ]}
-            >
-              {category.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.resultCount}>
-        {filteredItems.length} menu item(s)
-      </Text>
-
-      <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            No menu items found. Try another search or filter.
-          </Text>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.menuCard}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.price}>
-                R{Number(item.price).toFixed(2)}
-              </Text>
-            </View>
-
-            <Text style={styles.description}>
-              {item.description}
-            </Text>
-            
-            <View style={styles.cardFooter}>
-              <Text style={styles.category}>
-                {item.category === 'Main' ? 'Main Course' : item.category}
-                </Text>
-                
-                <Text style={[styles.availability,!item.available && styles.unavailable,]}>
-                  {item.available ? 'Available' : 'Unavailable'}
-                  </Text>
-                  
-                  <TouchableOpacity style={styles.deleteButton}
-                  onPress={() => handleDeleteItem(item.id, item.name)}>
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                    </TouchableOpacity>
-                    </View>
-          </View>
-        )}
-      />
-    </View>
+    <MenuContext.Provider
+      value={{
+        menuItems,
+        addMenuItem,
+        updateMenuItem,
+        deleteMenuItem,
+        toggleAvailability,
+      }}
+    >
+      {children}
+    </MenuContext.Provider>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
-    padding: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 20,
-  },
-  searchInput: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    marginBottom: 20,
-    fontSize: 15,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 10,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 18,
-  },
-  filterButton: {
-    paddingVertical: 9,
-    paddingHorizontal: 13,
-    borderRadius: 20,
-    backgroundColor: '#E5E7EB',
-  },
-  activeFilter: {
-    backgroundColor: '#3B82F6',
-  },
-  filterText: {
-    color: '#374151',
-    fontSize: 13,
-  },
-  activeFilterText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  resultCount: {
-    color: '#6B7280',
-    fontSize: 13,
-    marginBottom: 12,
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
-  menuCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  itemName: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    flex: 1,
-    marginRight: 10,
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#3B82F6',
-  },
-  description: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 12,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  category: {
-    color: '#374151',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  availability: {
-    color: '#16A34A',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  unavailable: {
-    color: '#DC2626',
-  },
-  deleteButton: {
-    backgroundColor: '#DC2626',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-  },
-  deleteButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#6B7280',
-    marginTop: 30,
-  },
-});
+export function useMenu() {
+  const context = useContext(MenuContext);
+
+  if (!context) {
+    throw new Error('useMenu must be used within a MenuProvider');
+  }
+
+  return context;
+}
