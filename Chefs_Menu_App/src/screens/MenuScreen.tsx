@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from 'react-native';
 
 import { useMenu } from '../context/MenuContext';
