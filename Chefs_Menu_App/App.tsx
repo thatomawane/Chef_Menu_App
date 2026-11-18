@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import { MenuProvider } from './src/context/MenuContext';
 import AppNavigator from './src/navigation/AppNavigator';
+import {MenuScreen} from './src/screens/MenuScreen';
 
 export default function App() {
   return (
