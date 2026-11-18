@@ -24,7 +24,26 @@ const categories: { label: string; value: FilterCategory }[] = [
 ];
 
 export default function MenuScreen() {
-  const { menuItems } = useMenu();
+  const handleDeleteItem = (id: string, name: string) => {
+  Alert.alert(
+    'Delete Menu Item',
+    `Are you sure you want to delete ${name}?`,
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deleteMenuItem(id);
+        },
+      },
+    ]
+  );
+};
+  const { menuItems, deleteMenuItem } = useMenu();
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] =
@@ -107,23 +126,21 @@ export default function MenuScreen() {
             <Text style={styles.description}>
               {item.description}
             </Text>
-
+            
             <View style={styles.cardFooter}>
               <Text style={styles.category}>
-                {item.category === 'Main'
-                  ? 'Main Course'
-                  : item.category}
-              </Text>
-
-              <Text
-                style={[
-                  styles.availability,
-                  !item.available && styles.unavailable,
-                ]}
-              >
-                {item.available ? 'Available' : 'Unavailable'}
-              </Text>
-            </View>
+                {item.category === 'Main' ? 'Main Course' : item.category}
+                </Text>
+                
+                <Text style={[styles.availability,!item.available && styles.unavailable,]}>
+                  {item.available ? 'Available' : 'Unavailable'}
+                  </Text>
+                  
+                  <TouchableOpacity style={styles.deleteButton}
+                  onPress={() => handleDeleteItem(item.id, item.name)}>
+                    <Text style={styles.deleteButtonText}>Delete</Text>
+                    </TouchableOpacity>
+                    </View>
           </View>
         )}
       />
