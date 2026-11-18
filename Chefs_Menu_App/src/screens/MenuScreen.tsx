@@ -258,6 +258,17 @@ const styles = StyleSheet.create({
   unavailable: {
     color: '#DC2626',
   },
+  deleteButton: {
+    backgroundColor: '#DC2626',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  deleteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   emptyText: {
     textAlign: 'center',
     color: '#6B7280',

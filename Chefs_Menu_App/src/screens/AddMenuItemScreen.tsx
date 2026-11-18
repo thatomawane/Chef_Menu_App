@@ -21,7 +21,8 @@ const categories: { label: string; value: Category }[] = [
 ];
 
 export default function AddMenuItemScreen() {
-  const { addMenuItem } = useMenu();
+  const { addMenuItem, menuItems } = useMenu();
+
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -32,15 +33,32 @@ export default function AddMenuItemScreen() {
     const trimmedName = name.trim();
     const trimmedDescription = description.trim();
     const numericPrice = Number(price);
+    const duplicateItem = menuItems.some(
+  (item) => item.name.toLowerCase() === trimmedName.toLowerCase()
+);
+
+if (duplicateItem) {
+  Alert.alert(
+    'Duplicate item',
+    'This menu item already exists. Please use a different name.'
+  );
+  return;
+}
 
     if (!trimmedName || !trimmedDescription || !price.trim()) {
       Alert.alert('Missing information', 'Please complete all fields.');
       return;
     }
 
-    if (!Number.isFinite(numericPrice) || numericPrice <= 0) {
-      Alert.alert('Invalid price', 'Enter a valid price greater than R0.');
-      return;
+    const validPriceFormat = /^\d+(\.\d{1,2})?$/.test(price.trim());
+
+if (!validPriceFormat || numericPrice <= 0) {
+  Alert.alert(
+    'Invalid price',
+    'Please enter a valid price greater than R0, using up to 2 decimal places.'
+  );
+  return;
+}
     }
 
     addMenuItem({
